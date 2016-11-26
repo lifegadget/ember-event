@@ -2,8 +2,8 @@ import './common-types';
 import WorkflowManager from './workflow-manager';
 import * as workflow from './workflow-manager';
 import PerformanceMetric from './performance-metric';
-import * as StackTrace from 'stacktrace-js';
-import * as Ember from 'Ember';
+// import * as StackTrace from 'stacktrace-js';
+import * as Ember from 'ember';
 
 const STACK_TRACE_LOG_LEVELS = ['warn', 'error'];
 const STACK_START_DEPTH = 2;
@@ -28,32 +28,34 @@ export default class Logger {
    * current call stack (minus the stack involved in getting here)
    */
   stackTrace(err: Error | null, incomingHash: IDictionary<any>, ): Promise<IDictionary<any>> {
-    let hash = Object.assign({}, incomingHash);
-    return new Promise( (resolve, reject) => {
+    // let hash = Object.assign({}, incomingHash);
+    // return new Promise( (resolve, reject) => {
 
-      if(err) {
-        StackTrace.fromError(err)
-          .then(st => {
-            hash['stack'] = st;
-            return Promise.resolve(hash);
-          })
-          .then(resolve)
-          .catch(reject);
-      } else {
-        StackTrace.get()
-          .then(st => st.slice(STACK_START_DEPTH))
-          .then(st => {
-            hash['stack'] = st;
-            return Promise.resolve(hash);
-          })
-          .then(resolve)
-          .catch(reject);
-      }
+    //   if(err) {
+    //     StackTrace.fromError(err)
+    //       .then(st => {
+    //         hash['stack'] = st;
+    //         return Promise.resolve(hash);
+    //       })
+    //       .then(resolve)
+    //       .catch(reject);
+    //   } else {
+    //     StackTrace.get()
+    //       .then(st => st.slice(STACK_START_DEPTH))
+    //       .then(st => {
+    //         hash['stack'] = st;
+    //         return Promise.resolve(hash);
+    //       })
+    //       .then(resolve)
+    //       .catch(reject);
+    //   }
 
-    });
+    // });
+    return Promise.resolve(incomingHash);
   }
 
   log( messageOrError: string | Error, hash: IDictionary<any> ) {
+    console.log('logging', messageOrError, hash);
     if (!hash['severity']) { hash['severity'] = 'info' };
     if (typeof messageOrError !== 'string') {
       hash = this.stackTrace(messageOrError, hash);
@@ -64,12 +66,18 @@ export default class Logger {
       }
       hash['message'] = messageOrError;
     }
-    this.sendEvent('log')(hash);
+    this.sendEvent('log')(Object.assign({ message: messageOrError }, hash));
   }
 
   sendEvent(type: string) {
     return (hash: IDictionary<any>) => {
-      // TODO
+      console.log('sending event', hash);
+      Ember.$.ajax({
+        type: 'POST',
+        url: 'https://m21x9qbpyi.execute-api.eu-west-1.amazonaws.com/dev/logger',
+        contentType: 'application/json; charset=utf-8',
+        contents: hash
+      });
     };
   }
 

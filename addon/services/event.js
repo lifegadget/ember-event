@@ -1,5 +1,5 @@
 import Ember from 'ember';
-import Logger from '../util/logger';
+import Logger from '../utils/logger';
 
 const logger = new Logger();
 
@@ -10,14 +10,17 @@ export default Ember.Service.extend({
     return logger.userLogin(userId);
   },
 
+  debug(message, options) {
+    logger.log( message, { options, severity: 'debug'} );
+  },
   info(message, options) {
-    logger.log( {message, options, severity: 'info'} );
+    logger.log( message, { options, severity: 'info'} );
   },
   warn(message, options) {
-    logger.log( {message, options, severity: 'warn'} );
+    logger.log( message, { options, severity: 'warn'} );
   },
   error(message, options) {
-    logger.log( {message, options, severity: 'error'} );
+    logger.log( message, { options, severity: 'error'} );
   },
 
 
